@@ -35,6 +35,7 @@ class ResizerAppTest {
         final Integer reducedPreviewWidth = FILM_COVER_WIDTH - 500;
         final Integer reducedPreviewHeight = FILM_COVER_HEIGHT - 500;
 
+
         URL res = getClass().getClassLoader().getResource(FILM_COVER_SOURCE_NAME);
         assert res != null;
 
@@ -82,6 +83,37 @@ class ResizerAppTest {
 
         assertEquals(reducedPreview.getWidth(), reducedPreviewWidth);
         assertEquals(reducedPreview.getHeight(), reducedPreviewHeight);
+    }
+
+    @Test
+    public void testCropCover() throws Exception {
+        final Integer croppedPreviewX = FILM_COVER_WIDTH - 500;
+        final Integer croppedPreviewY = FILM_COVER_HEIGHT - 500;
+        final Integer croppedPreviewWidth = 200;
+        final Integer croppedPreviewHeight = 200;
+
+        URL res = getClass().getClassLoader().getResource(FILM_COVER_SOURCE_NAME);
+        assert res != null;
+
+        File file = Paths.get(res.toURI()).toFile();
+        String absolutePathInput = file.getAbsolutePath();
+
+        String absolutePathOutput = absolutePathInput.replaceFirst(FILM_COVER_SOURCE_NAME, FILM_COVER_TARGET_NAME);
+
+        ResizerApp app = new ResizerApp();
+        app.setInputFile(new File(absolutePathInput));
+        app.setOutputFile(new File(absolutePathOutput));
+        app.setCropX(croppedPreviewX);
+        app.setCropY(croppedPreviewY);
+        app.setCropWidth(croppedPreviewWidth);
+        app.setCropHeight(croppedPreviewHeight);
+        app.setQuality(100);
+        app.call();
+
+        BufferedImage reducedPreview = ImageIO.read(new File(absolutePathOutput));
+
+        assertEquals(reducedPreview.getWidth(), croppedPreviewWidth);
+        assertEquals(reducedPreview.getHeight(), croppedPreviewHeight);
     }
 
 // Отказ от тестов с MD5
@@ -165,6 +197,94 @@ class ResizerAppTest {
 //        String outputCheckSum = getMD5(absolutePathOutput);
 //        assertEquals("d4e92cf8ce5c1ed04241129da3d950f1", outputCheckSum);
 //    }
+
+    @Test
+    public void testBadCropAttributes() throws Exception {
+        final Integer croppedPreviewX = FILM_COVER_WIDTH - 500;
+        final Integer croppedPreviewY = FILM_COVER_HEIGHT - 500;
+        final Integer croppedPreviewWidth = 600;
+        final Integer croppedPreviewHeight = 600;
+
+        URL res = getClass().getClassLoader().getResource(FILM_COVER_SOURCE_NAME);
+        assert res != null;
+
+        File file = Paths.get(res.toURI()).toFile();
+        String absolutePathInput = file.getAbsolutePath();
+
+        String absolutePathOutput = absolutePathInput.replaceFirst(FILM_COVER_SOURCE_NAME, FILM_COVER_TARGET_NAME);
+
+        ResizerApp app = new ResizerApp();
+        app.setInputFile(new File(absolutePathInput));
+        app.setOutputFile(new File(absolutePathOutput));
+        app.setCropX(croppedPreviewX);
+        app.setCropY(croppedPreviewY);
+        app.setCropWidth(croppedPreviewWidth);
+        app.setCropHeight(croppedPreviewHeight);
+        app.setQuality(100);
+        BadAttributesException generatedException = null;
+        try {
+            app.call();
+        } catch (BadAttributesException e) {
+            generatedException = e;
+        }
+
+        assertEquals("Please check params!", generatedException.getMessage());
+        assertEquals(BadAttributesException.class, generatedException.getClass());
+    }
+
+    @Test
+    public void testBadBlurAttributes() throws Exception {
+
+        URL res = getClass().getClassLoader().getResource(FILM_COVER_SOURCE_NAME);
+        assert res != null;
+
+        File file = Paths.get(res.toURI()).toFile();
+        String absolutePathInput = file.getAbsolutePath();
+
+        String absolutePathOutput = absolutePathInput.replaceFirst(FILM_COVER_SOURCE_NAME, FILM_COVER_TARGET_NAME);
+
+        ResizerApp app = new ResizerApp();
+        app.setInputFile(new File(absolutePathInput));
+        app.setOutputFile(new File(absolutePathOutput));
+        app.setBlur(-10);
+        app.setQuality(100);
+        BadAttributesException generatedException = null;
+        try {
+            app.call();
+        } catch (BadAttributesException e) {
+            generatedException = e;
+        }
+
+        assertEquals("Please check params!", generatedException.getMessage());
+        assertEquals(BadAttributesException.class, generatedException.getClass());
+    }
+
+    @Test
+    public void testBadFileFormatAttributes() throws Exception {
+
+        URL res = getClass().getClassLoader().getResource(FILM_COVER_SOURCE_NAME);
+        assert res != null;
+
+        File file = Paths.get(res.toURI()).toFile();
+        String absolutePathInput = file.getAbsolutePath();
+
+        String absolutePathOutput = absolutePathInput.replaceFirst(FILM_COVER_SOURCE_NAME, FILM_COVER_TARGET_NAME);
+
+        ResizerApp app = new ResizerApp();
+        app.setInputFile(new File(absolutePathInput));
+        app.setOutputFile(new File(absolutePathOutput));
+        app.setFileFormat("oopsy!Doopsy");
+        app.setQuality(100);
+        BadAttributesException generatedException = null;
+        try {
+            app.call();
+        } catch (BadAttributesException e) {
+            generatedException = e;
+        }
+
+        assertEquals("Please check params!", generatedException.getMessage());
+        assertEquals(BadAttributesException.class, generatedException.getClass());
+    }
 
     @Test
     public void testTypoSourceName() throws Exception {
